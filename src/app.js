@@ -21,12 +21,10 @@ const JSEncrypt = require('node-jsencrypt');
 const superagent = require('superagent');
 const config = require('../config');
 const accounts = require('../accounts');
-const serverChan = require('../serverChan');
-const telegramBot = require('../telegramBot');
 
 const client = superagent.agent();
 const headers = {
-  'User-Agent': `Mozilla/5.0 (Linux; U; Android 11; ${config.model} Build/RP1A.201005.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.136 Mobile Safari/537.36 Ecloud/${config.version} Android/30 clientId/${config.clientId} clientModel/${config.model} clientChannelId/qq proVersion/1.0.6`,
+  'User-Agent': `Mozilla/5.0 (Linux; U; Android 11; ${config.model} Build/RP1A.201005.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/75.0.3729.136 Mobile Safari/537.36 Ecloud/${config.version} Android/30 clientId/${config.clientId} clientModel/${config.model} clientChannelId/qq proVersion/1.0.6`,
   Referer: 'https://m.cloud.189.cn/zhuanti/2016/sign/index.jsp?albumBackupOpened=1',
   'Accept-Encoding': 'gzip, deflate',
   Host: 'cloud.189.cn',
@@ -212,55 +210,7 @@ const doTask = async () => {
   return result;
 };
 
-const pushServerChan = (title, desp) => {
-  if (!serverChan.sendKey) { return; }
-  const data = {
-    title,
-    desp,
-  };
-  superagent.post(`https://sctapi.ftqq.com/${serverChan.sendKey}.send`)
-    .type('form')
-    .send(data)
-    .end((err, res) => {
-      if (err) {
-        logger.error(`ServerChan推送失败:${JSON.stringify(err)}`);
-        return;
-      }
-      const json = JSON.parse(res.text);
-      if (json.code !== 0) {
-        logger.error(`ServerChan推送失败:${JSON.stringify(json)}`);
-      } else {
-        logger.info('ServerChan推送成功');
-      }
-    });
-};
-
-const pushTelegramBot = (title, desp) => {
-  if (!(telegramBot.botToken && telegramBot.chatId)) { return; }
-  const data = {
-    chat_id: telegramBot.chatId,
-    text: title + "\n\n" + desp,
-  };
-  superagent.post(`https://api.telegram.org/bot${telegramBot.botToken}/sendMessage`)
-    .type('form')
-    .send(data)
-    .end((err, res) => {
-      if (err) {
-        logger.error(`TelegramBot推送失败:${JSON.stringify(err)}`);
-        return;
-      }
-      const json = JSON.parse(res.text);
-      if (!json.ok) {
-        logger.error(`TelegramBot推送失败:${JSON.stringify(json)}`);
-      } else {
-        logger.info('TelegramBot推送成功');
-      }
-    });
-};
-
 const push = (title, desp) => {
-  pushServerChan(title, desp);
-  pushTelegramBot(title, desp);
 }
 
 // 开始执行程序
